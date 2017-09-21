@@ -1,0 +1,121 @@
+package com.integrity;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.*;
+
+/**
+ * Created by Michael Rudyy on 06-Sep-17.
+ */
+
+public class TaskSolver {
+
+    private static List<String> wordsList;
+    private static HashMap<String, Cell<Integer, Integer>> dictionaryMap;
+    private static int wordsMinLenght;
+
+    public static void init(String path) throws IOException {
+        SetWordsLists(path);
+    }
+
+    public static List getLongestConcatenatedWords(int amount) {
+        List<String> listOfLongestConcatenatedWords = new ArrayList<>();
+        if (checkWordListIsNull()) return listOfLongestConcatenatedWords;
+
+        List<String> sortedByLenghtWordList = new ArrayList<>(wordsList);
+        sortedByLenghtWordList.sort((w1, w2) -> w2.length() - w1.length());
+
+        //Collections.sort(sortedByLenghtWordList, (w1, w2) -> w1.length() < w2.length() ? 1 : w1.length() == w2.length() ? 0 : -1);
+        for (int i = 0; i < sortedByLenghtWordList.size(); i++) {
+            if (amount != 0){
+                if (checkConcatenation(sortedByLenghtWordList.get(i))) {
+                    listOfLongestConcatenatedWords.add(new StringBuffer(sortedByLenghtWordList.get(i)).reverse().toString());
+                    amount--;
+                }
+            } else{
+                break;
+            }
+        }
+        return listOfLongestConcatenatedWords;
+    }
+
+    public static int getAmountOf() {
+        int amount = 0;
+        if (checkWordListIsNull()) return amount;
+        for (String word : wordsList) {
+            if (checkConcatenation(word)) amount++;
+        }
+        return amount;
+    }
+
+    private static boolean checkWordListIsNull() {
+        if (wordsList == null) {
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean checkConcatenation(String word) {
+        int counterWordsInConcatenedWord = 0;
+
+        Cell<Integer, Integer> cellOfWord;
+
+        while (word.length() != 0) {
+            if (word.length() >= wordsMinLenght) {
+                cellOfWord = dictionaryMap.get(word.substring(0, wordsMinLenght));
+                if (cellOfWord == null) return false;
+            } else {
+                return false;
+            }
+
+            for (int i = cellOfWord.getValue1(); i < cellOfWord.value2; i++) {
+                if ((word.startsWith(wordsList.get(i))) &&
+                        ((!word.equals(wordsList.get(i))) || (counterWordsInConcatenedWord != 0))) {
+                    counterWordsInConcatenedWord++;
+                    word = word.substring(wordsList.get(i).length(), word.length());
+                    break;
+                } else {
+                    if (i == cellOfWord.getValue2() - 1) return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private static void SetWordsLists(String path) throws IOException {
+        wordsMinLenght = Integer.MAX_VALUE;
+        String tmpWord;
+        wordsList = new ArrayList<>();
+
+        StringBuffer stringBuffer;
+        BufferedReader bufferedReader = new BufferedReader(new FileReader(path));
+
+        while (((tmpWord = bufferedReader.readLine()) != null) && (!tmpWord.isEmpty())) {
+            stringBuffer = new StringBuffer(tmpWord);
+            wordsList.add(stringBuffer.reverse().toString());
+            if (tmpWord.length() < wordsMinLenght) wordsMinLenght = tmpWord.length();
+        }
+
+        bufferedReader.close();
+
+        wordsList.sort((o1, o2) -> o1.compareTo(o2));
+
+        dictionaryMap = new HashMap<>();
+        tmpWord = "*";
+        int firstLocate = 0;
+
+        for (int i = 0; i < wordsList.size(); i++) {
+            if (!wordsList.get(i).startsWith(tmpWord)) {
+                dictionaryMap.put(tmpWord, new Cell<>(firstLocate, i));
+                firstLocate = i;
+                tmpWord = wordsList.get(i).substring(0, wordsMinLenght);
+            }
+            if (i == wordsList.size() - 1) {
+                dictionaryMap.put(tmpWord, new Cell<>(firstLocate, wordsList.size()));
+            }
+        }
+
+        dictionaryMap.remove("*");
+    }
+}
