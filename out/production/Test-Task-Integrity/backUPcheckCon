@@ -1,0 +1,30 @@
+    public static boolean checkConcatenation(String word) {
+        int counterWordsInConcatenedWord = 0;
+
+        Cell<Integer, Integer> cellOfWord;
+
+        while (word.length() != 0) {
+            if (word.length() >= wordsMinLenght) {
+                cellOfWord = dictionaryMap.get(word.substring(0, wordsMinLenght));
+                if (cellOfWord == null) return false;
+            } else {
+                return false;
+            }
+
+            for (int i = cellOfWord.getValue1(); i < cellOfWord.value2; i++) {
+                if ((word.startsWith(wordsList.get(i))) &&
+                        ((!word.equals(wordsList.get(i))) || (counterWordsInConcatenedWord != 0))) {
+                    counterWordsInConcatenedWord++;
+                    word = word.substring(wordsList.get(i).length(), word.length());
+                    System.out.println(word);
+                    if (word.startsWith("s") && isThere(wordsList.get(i)+"s") && !checkConcatenation(word)){
+                        word = word.substring(1);
+                    }
+                    break;
+                } else {
+                    if (i == cellOfWord.getValue2() - 1) return false;
+                }
+            }
+        }
+        return true;
+    }

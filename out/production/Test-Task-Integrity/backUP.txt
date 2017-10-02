@@ -14,7 +14,6 @@ public class TaskSolver {
     private static List<String> wordsList;
     private static HashMap<String, Cell<Integer, Integer>> dictionaryMap;
     private static int wordsMinLenght;
-    public static int levelOfRecursion = 0;
 
     public static void init(String path) throws IOException {
         SetWordsLists(path);
@@ -27,13 +26,14 @@ public class TaskSolver {
         List<String> sortedByLenghtWordList = new ArrayList<>(wordsList);
         sortedByLenghtWordList.sort((w1, w2) -> w2.length() - w1.length());
 
+        //Collections.sort(sortedByLenghtWordList, (w1, w2) -> w1.length() < w2.length() ? 1 : w1.length() == w2.length() ? 0 : -1);
         for (int i = 0; i < sortedByLenghtWordList.size(); i++) {
-            if (amount != 0) {
+            if (amount != 0){
                 if (checkConcatenation(sortedByLenghtWordList.get(i))) {
-                    listOfLongestConcatenatedWords.add(sortedByLenghtWordList.get(i));
+                    listOfLongestConcatenatedWords.add(new StringBuffer(sortedByLenghtWordList.get(i)).reverse().toString());
                     amount--;
                 }
-            } else {
+            } else{
                 break;
             }
         }
@@ -57,32 +57,30 @@ public class TaskSolver {
     }
 
     public static boolean checkConcatenation(String word) {
+        int counterWordsInConcatenedWord = 0;
+
         Cell<Integer, Integer> cellOfWord;
 
-        if ((levelOfRecursion != 0) && (word.length() == 0)) return true;
+        while (word.length() != 0) {
+            if (word.length() >= wordsMinLenght) {
+                cellOfWord = dictionaryMap.get(word.substring(0, wordsMinLenght));
+                if (cellOfWord == null) return false;
+            } else {
+                return false;
+            }
 
-        // Проверка на валидность Cell
-        if (word.length() >= wordsMinLenght) {
-            cellOfWord = dictionaryMap.get(word.substring(0, wordsMinLenght));
-            if (cellOfWord == null) return false;
-        } else {
-            return false;
-        }
-
-        for (int i = cellOfWord.getValue1(); i < cellOfWord.getValue2(); i++) {
-
-            if (word.startsWith(wordsList.get(i)) &&
-                    ((!word.equals(wordsList.get(i))) || (levelOfRecursion != 0))) {
-                levelOfRecursion++;
-                if ((wordsList.get(i).length() <= word.length()) &&
-                        checkConcatenation(word.substring(wordsList.get(i).length()))) {
-                    levelOfRecursion--;
-                    return true;
+            for (int i = cellOfWord.getValue1(); i < cellOfWord.value2; i++) {
+                if ((word.startsWith(wordsList.get(i))) &&
+                        ((!word.equals(wordsList.get(i))) || (counterWordsInConcatenedWord != 0))) {
+                    counterWordsInConcatenedWord++;
+                    word = word.substring(wordsList.get(i).length(), word.length());
+                    break;
+                } else {
+                    if (i == cellOfWord.getValue2() - 1) return false;
                 }
-                levelOfRecursion--;
             }
         }
-        return false;
+        return true;
     }
 
     private static void SetWordsLists(String path) throws IOException {
@@ -90,14 +88,18 @@ public class TaskSolver {
         String tmpWord;
         wordsList = new ArrayList<>();
 
+        StringBuffer stringBuffer;
         BufferedReader bufferedReader = new BufferedReader(new FileReader(path));
 
         while (((tmpWord = bufferedReader.readLine()) != null) && (!tmpWord.isEmpty())) {
-            wordsList.add(tmpWord);
+            stringBuffer = new StringBuffer(tmpWord);
+            wordsList.add(stringBuffer.reverse().toString());
             if (tmpWord.length() < wordsMinLenght) wordsMinLenght = tmpWord.length();
         }
 
         bufferedReader.close();
+
+        wordsList.sort((o1, o2) -> o1.compareTo(o2));
 
         dictionaryMap = new HashMap<>();
         tmpWord = "*";
@@ -109,11 +111,11 @@ public class TaskSolver {
                 firstLocate = i;
                 tmpWord = wordsList.get(i).substring(0, wordsMinLenght);
             }
-            if (i == wordsList.size()-1) {
-               // System.out.println(tmpWord + " : " + firstLocate + " " + wordsList.size());
+            if (i == wordsList.size() - 1) {
                 dictionaryMap.put(tmpWord, new Cell<>(firstLocate, wordsList.size()));
             }
         }
+
         dictionaryMap.remove("*");
     }
 }

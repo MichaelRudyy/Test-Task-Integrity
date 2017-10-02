@@ -7,7 +7,7 @@ import java.io.IOException;
  */
 public class Main {
 
-    public final static String TEXT_FILE_PATH = "resources/words.txt";
+    private final static String TEXT_FILE_PATH = "resources/words.txt";
 
     public static void main(String[] args) {
         try {
@@ -15,9 +15,7 @@ public class Main {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        System.out.println(TaskSolver.getLongestConcatenatedWords(2));
+        System.out.println(TaskSolver.getLongestConcatenatedWords(3));
         System.out.println(TaskSolver.getAmountOf());
-
     }
 }
